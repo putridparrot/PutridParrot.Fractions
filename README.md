@@ -11,14 +11,14 @@ A simple Fractions class/library. Includes several constructors which allow pass
 
 Includes comparison operators, mathematical operations, can be cast to a decimal point number.
 
-_Note: Will update to use .NET 7's INumber interface when that's release._
+_Note: Will update to use .NET 7's INumber interface when that's released._
 
 ## Usage
 
 Install the latest package from nuget, for example by running 
 
 ```
-dotnet add package PutridParrot.Fractions --version 1.0.0-alpha
+dotnet add package PutridParrot.Fractions --version 1.0.1-alpha
 ```
 
 In usages we simply use something like the following

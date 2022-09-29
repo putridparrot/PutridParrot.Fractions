@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PutridParrot.Fractions;
+﻿using PutridParrot.Fractions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Tests.PutridParrot.Fractions;
 
+[ExcludeFromCodeCoverage]
 public class GreatestCommonDivisorTests
 {
     [TestCase(24, 40, 8)]

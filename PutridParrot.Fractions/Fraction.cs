@@ -11,11 +11,12 @@ public class Fraction :
     //ISpanFormattable
 {
     /// <summary>
-    /// Creates a Fraction with the supplied numerator and denominator
+    /// Creates a fraction with the supplied numerator and denominator
     /// </summary>
     /// <param name="numerator"></param>
     /// <param name="denominator"></param>
     /// <param name="simplify"></param>
+    /// <exception cref="DivideByZeroException">If the denominator is zero a divide by zero exception occurs</exception>
     public Fraction(int numerator, int denominator, bool simplify = true)
     {
         if (denominator == 0)
@@ -28,7 +29,7 @@ public class Fraction :
     }
 
     /// <summary>
-    /// Creates a Fraction with a numerator over 1
+    /// Creates a fraction with a numerator over 1
     /// </summary>
     /// <param name="numerator"></param>
     public Fraction(int numerator)
@@ -38,11 +39,11 @@ public class Fraction :
     }
 
     /// <summary>
-    /// Creates a Fraction from a decimal
+    /// Creates a fraction from a decimal
     /// </summary>
     /// <param name="value"></param>
     /// <param name="simplify"></param>
-    /// <exception cref="DivideByZeroException"></exception>
+    /// <exception cref="DivideByZeroException">If the value produces a denominator that is zero a divide by zero exception occurs</exception>
     public Fraction(double value, bool simplify = true)
     {
         var fraction = ToFraction(value);
@@ -56,12 +57,12 @@ public class Fraction :
     }
 
     /// <summary>
-    /// Creates a Fraction from a string representation of a Fraction
+    /// Creates a fraction from a string representation of a Fraction
     /// or decimal
     /// </summary>
     /// <param name="value"></param>
     /// <param name="simplify"></param>
-    /// <exception cref="DivideByZeroException"></exception>
+    /// <exception cref="DivideByZeroException">If the value produces a denominator that is zero a divide by zero exception occurs</exception>
     public Fraction(string value, bool simplify = true)
     {
         var fraction = ToFraction(value);
@@ -75,19 +76,20 @@ public class Fraction :
     }
 
     /// <summary>
-    /// Creates a Fraction from a Fraction as a numerator and an
+    /// Creates a fraction from a Fraction as a numerator and an
     /// integer denominator
     /// </summary>
     /// <param name="numerator"></param>
     /// <param name="denominator"></param>
     /// <param name="simplify"></param>
+    /// <exception cref="DivideByZeroException">If the value produces a denominator that is zero a divide by zero exception occurs</exception>
     public Fraction(Fraction numerator, int denominator, bool simplify = true) :
         this(numerator.Numerator, numerator.Denominator * denominator, simplify)
     {
     }
 
     /// <summary>
-    /// Create a Fraction from a Fraction numerator and Fraction denominator
+    /// Create a fraction from a fraction numerator and fraction denominator
     /// </summary>
     /// <param name="numerator"></param>
     /// <param name="denominator"></param>
@@ -107,6 +109,53 @@ public class Fraction :
     public int Denominator { get; private set; }
 
     /// <summary>
+    /// Create a fraction from a string optionally using
+    /// a specific culture (for the decimal point character)
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="cultureInfo"></param>
+    /// <returns></returns>
+    public static Fraction ToFraction(string value, CultureInfo? cultureInfo = null)
+    {
+        // TODO: Need some proper error handling
+        var split = value.Split('/');
+        if (split.Length == 2)
+        {
+            return new Fraction(Int32.Parse(split[0]), Int32.Parse(split[1]));
+        }
+
+        cultureInfo ??= CultureInfo.CurrentCulture;
+        return ToFraction(Double.Parse(value, cultureInfo), cultureInfo);
+    }
+
+    /// <summary>
+    /// Create a fraction from a double
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static Fraction ToFraction(double value) => 
+        ToFraction(value, null);
+
+    private static Fraction ToFraction(double value, CultureInfo? cultureInfo)
+    {
+        if (value % 1 == 0) // if value is a whole number
+        {
+            return new Fraction((int)value);
+        }
+
+        cultureInfo ??= CultureInfo.CurrentCulture;
+        var decimalPoint = cultureInfo.NumberFormat.NumberDecimalSeparator;
+
+        checked
+        {
+            var s = value.ToString(CultureInfo.CurrentCulture);
+            var dp = s.IndexOf(decimalPoint, StringComparison.InvariantCulture) + 1;
+            var multiple = (int)Math.Pow(10, s.Length - dp);
+            return new Fraction((int)Math.Round(value * multiple), multiple);
+        }
+    }
+
+    /// <summary>
     /// Make the fraction positive
     /// </summary>
     /// <param name="fraction"></param>
@@ -121,7 +170,7 @@ public class Fraction :
     public static Fraction operator -(Fraction a) => new(-a.Numerator, a.Denominator, false);
 
     /// <summary>
-    /// Add two Fractions
+    /// Add two fractions
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -130,7 +179,16 @@ public class Fraction :
         => new(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator, false);
 
     /// <summary>
-    /// Subtract two Fractions
+    /// Add a double to a fraction
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static Fraction operator +(Fraction a, double b) => 
+        a + new Fraction(b);
+
+    /// <summary>
+    /// Subtract two fractions
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -139,7 +197,16 @@ public class Fraction :
         => a + -b;
 
     /// <summary>
-    /// Multiply two Fractions
+    /// Subtract a double from the fraction
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static Fraction operator -(Fraction a, double b) =>
+        a - new Fraction(b);
+
+    /// <summary>
+    /// Multiply two fractions
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -148,36 +215,49 @@ public class Fraction :
         => new(a.Numerator * b.Numerator, a.Denominator * b.Denominator, false);
 
     /// <summary>
-    /// Divide Fractions
+    /// Multiply a fraction by a double
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    /// <exception cref="DivideByZeroException"></exception>
-    public static Fraction operator /(Fraction a, Fraction b)
-    {
-        if (b.Numerator == 0)
-        {
-            throw new DivideByZeroException();
-        }
-        return new Fraction(a.Numerator * b.Denominator, a.Denominator * b.Numerator, false);
-    }
+    public static Fraction operator *(Fraction a, double b) =>
+        a * new Fraction(b);
 
+    /// <summary>
+    /// Divide two fractions
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static Fraction operator /(Fraction a, Fraction b) =>
+        new (a.Numerator * b.Denominator, a.Denominator * b.Numerator, false);
+
+    /// <summary>
+    /// Divide a fraction by a double
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static Fraction operator /(Fraction a, double b) =>
+        a / new Fraction(b);
+
+
+    /// <summary>
+    /// Implicit cast from a fraction to a double representing the decimal of the fraction.
+    /// </summary>
+    /// <param name="fraction"></param>
     public static implicit operator double(Fraction? fraction) => 
         fraction is not null ? (double)fraction.Numerator / fraction.Denominator : 0.0;
 
     /// <summary>
-    /// Get a Fraction as a string
+    /// Get a fraction as a string
     /// </summary>
     /// <returns></returns>
     public override string ToString() => $"{Numerator}/{Denominator}";
 
     /// <summary>
-    /// 
+    /// Get a fraction using format and format provider
     /// </summary>
-    /// <example>
-    /// Console.WriteLine("{0:N}/{0:D}", new Fraction(3, 4);
-    /// </example>
     /// <param name="format"></param>
     /// <param name="formatProvider"></param>
     /// <returns></returns>
@@ -207,6 +287,11 @@ public class Fraction :
     //    throw new NotImplementedException();
     //}
 
+    /// <summary>
+    /// Compare this fraction with the supplied object
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
     public int CompareTo(object? obj)
     {
         return CompareTo(obj as Fraction);
@@ -218,6 +303,11 @@ public class Fraction :
         _ => fraction1!.CompareTo(fraction2)
     };
 
+    /// <summary>
+    /// Compares this fraction the the supplied, other, fraction
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns>&gt;1 if this fraction is larger than the other, &lt;1 if it's smaller or 0 if they're the same</returns>
     public int CompareTo(Fraction? other)
     {
         if (other is null)
@@ -243,10 +333,10 @@ public class Fraction :
     }
 
     /// <summary>
-    /// Simplify the Fraction if possible, producing
-    /// a Fraction with the lowest common denominator
+    /// Simplify the fraction, if possible, producing a fraction with the
+    /// lowest common denominator
     /// </summary>
-    /// <returns></returns>
+    /// <returns>This fraction mutated to it's simplified state</returns>
     public Fraction Simplify()
     {
         var g = GetCommonDivisor(Numerator, Denominator);
@@ -262,7 +352,8 @@ public class Fraction :
     }
 
     /// <summary>
-    ///
+    /// Gets the common divisor for a numerator and denominator
+    /// 
     /// https://en.wikipedia.org/wiki/Greatest_common_divisor
     /// </summary>
     /// <param name="numerator"></param>
@@ -273,36 +364,8 @@ public class Fraction :
         return numerator == 0 ? Math.Abs(denominator) : GetCommonDivisor(denominator % numerator, numerator);
     }
 
-    private static Fraction ToFraction(string value)
-    {
-        // TODO: Need some proper error handling
-        var split = value.Split('/');
-        if (split.Length == 2)
-        {
-            return new Fraction(Int32.Parse(split[0]), Int32.Parse(split[1]));
-        }
-
-        return ToFraction(Double.Parse(value));
-    }
-
-    private static Fraction ToFraction(double value)
-    {
-        if (value % 1 == 0) // if value is a whole number
-        {
-            return new Fraction((int)value);
-        }
-
-        checked
-        {
-            var s = value.ToString();
-            var dp = s.IndexOf(".") + 1;
-            var multiple = (int)Math.Pow(10, s.Length - dp);
-            return new Fraction((int)Math.Round(value * multiple), multiple);
-        }
-    }
-
     /// <summary>
-    /// Compare Fractions for equality
+    /// Compare fractions for equality
     /// </summary>
     /// <param name="fraction1"></param>
     /// <param name="fraction2"></param>
@@ -311,7 +374,7 @@ public class Fraction :
         Equals(fraction1, fraction2);
 
     /// <summary>
-    /// Compare Fractions for inequality
+    /// Compare fractions for inequality
     /// </summary>
     /// <param name="fraction1"></param>
     /// <param name="fraction2"></param>
@@ -356,7 +419,7 @@ public class Fraction :
         CompareTo(fraction1, fraction2) >= 0;
 
     /// <summary>
-    /// Compare Fractions for equality
+    /// Compare fractions for equality
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
@@ -376,7 +439,7 @@ public class Fraction :
     }
 
     /// <summary>
-    /// Compare Fractions for equality
+    /// Compare fractions for equality
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>

@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using NUnit.Framework;
 using PutridParrot.Fractions;
+using System.Globalization;
 
 namespace Tests.PutridParrot.Fractions;
 
@@ -60,6 +62,15 @@ public class FractionTests
         Assert.That(fraction.Denominator, Is.EqualTo(denominator));
     }
 
+    [TestCase(5, 5, 1)]
+    public void Fraction_FromInt(int d, int numerator, int denominator)
+    {
+        var fraction = new Fraction(d);
+        Assert.That(fraction.Numerator, Is.EqualTo(numerator));
+        Assert.That(fraction.Denominator, Is.EqualTo(denominator));
+    }
+
+
     [TestCase(5, 4, 1, 2, 14, 8)]
     public void Addition_Tests(int numerator1, int denominator1, 
         int numerator2, int denominator2, int expectedNumerator, int expectedDenominator)
@@ -71,6 +82,29 @@ public class FractionTests
         Assert.That(fraction3.Numerator, Is.EqualTo(expectedNumerator));
         Assert.That(fraction3.Denominator, Is.EqualTo(expectedDenominator));
     }
+
+    [TestCase(5, 4, 0.5, 14, 8)]
+    public void Addition_WithDouble_Tests(int numerator1, int denominator1,
+        double value, int expectedNumerator, int expectedDenominator)
+    {
+        var fraction1 = new Fraction(numerator1, denominator1);
+        var fraction2 = fraction1 + value;
+
+        Assert.That(fraction2.Numerator, Is.EqualTo(expectedNumerator));
+        Assert.That(fraction2.Denominator, Is.EqualTo(expectedDenominator));
+    }
+
+    [TestCase(5, 4, 2, 13, 4)]
+    public void Addition_WithInt_Tests(int numerator1, int denominator1,
+        int value, int expectedNumerator, int expectedDenominator)
+    {
+        var fraction1 = new Fraction(numerator1, denominator1);
+        var fraction2 = fraction1 + value;
+
+        Assert.That(fraction2.Numerator, Is.EqualTo(expectedNumerator));
+        Assert.That(fraction2.Denominator, Is.EqualTo(expectedDenominator));
+    }
+
 
     [TestCase(5, 4, -5, 4)]
     public void Negate_Test1(int numerator, int denominator, int expectedNumerator, int expectedDenominator)
@@ -88,11 +122,23 @@ public class FractionTests
     {
         var fraction1 = new Fraction(numerator1, denominator1);
         var fraction2 = new Fraction(numerator2, denominator2);
-        var fraction3 = fraction1 - fraction2;
+        var result = fraction1 - fraction2;
 
-        Assert.That(fraction3.Numerator, Is.EqualTo(expectedNumerator));
-        Assert.That(fraction3.Denominator, Is.EqualTo(expectedDenominator));
+        Assert.That(result.Numerator, Is.EqualTo(expectedNumerator));
+        Assert.That(result.Denominator, Is.EqualTo(expectedDenominator));
     }
+
+    [TestCase(5, 4, 0.5, 6, 8)]
+    public void Subtract_WithDouble_Tests(int numerator1, int denominator1,
+        double value, int expectedNumerator, int expectedDenominator)
+    {
+        var fraction1 = new Fraction(numerator1, denominator1);
+        var result = fraction1 - value;
+
+        Assert.That(result.Numerator, Is.EqualTo(expectedNumerator));
+        Assert.That(result.Denominator, Is.EqualTo(expectedDenominator));
+    }
+
 
     [TestCase(5, 4, 1, 2, 5, 8)]
     public void Multiply_Tests(int numerator1, int denominator1,
@@ -100,10 +146,21 @@ public class FractionTests
     {
         var fraction1 = new Fraction(numerator1, denominator1);
         var fraction2 = new Fraction(numerator2, denominator2);
-        var fraction3 = fraction1 * fraction2;
+        var result = fraction1 * fraction2;
 
-        Assert.That(fraction3.Numerator, Is.EqualTo(expectedNumerator));
-        Assert.That(fraction3.Denominator, Is.EqualTo(expectedDenominator));
+        Assert.That(result.Numerator, Is.EqualTo(expectedNumerator));
+        Assert.That(result.Denominator, Is.EqualTo(expectedDenominator));
+    }
+
+    [TestCase(5, 4, 0.5, 5, 8)]
+    public void Multiply_WithDouble_Tests(int numerator1, int denominator1,
+        double value, int expectedNumerator, int expectedDenominator)
+    {
+        var fraction1 = new Fraction(numerator1, denominator1);
+        var result = fraction1 * value;
+
+        Assert.That(result.Numerator, Is.EqualTo(expectedNumerator));
+        Assert.That(result.Denominator, Is.EqualTo(expectedDenominator));
     }
 
     [TestCase(5, 4, 1, 2, 10, 4)]
@@ -116,6 +173,23 @@ public class FractionTests
 
         Assert.That(fraction3.Numerator, Is.EqualTo(expectedNumerator));
         Assert.That(fraction3.Denominator, Is.EqualTo(expectedDenominator));
+    }
+
+    [TestCase(5, 4, 0.5, 10, 4)]
+    public void Divide_WithDouble_Test(int numerator1, int denominator1,
+        double value, int expectedNumerator, int expectedDenominator)
+    {
+        var fraction1 = new Fraction(numerator1, denominator1);
+        var result = fraction1 / value;
+
+        Assert.That(result.Numerator, Is.EqualTo(expectedNumerator));
+        Assert.That(result.Denominator, Is.EqualTo(expectedDenominator));
+    }
+
+    [Test]
+    public void Constructor_ByZero_ExpectException()
+    {
+        Assert.Throws<DivideByZeroException>(() => new Fraction(1, 0));
     }
 
     [TestCase(5, 4, 1, 2, 5, 8)]
@@ -279,4 +353,38 @@ public class FractionTests
         var fraction = new Fraction(numerator, denominator);
         Assert.That(fraction.ToString(format, null), Is.EqualTo(s));
     }
+
+    [Test, SetCulture("de-de")]
+    public void Fraction_UsingCultureWithGermanDecimalPointCharacter()
+    {
+        // when converting from a string we use the decimal point separator
+        var germanCultureValue = "1,47";
+        var fraction = new Fraction(germanCultureValue);
+
+        Assert.That(fraction.Numerator, Is.EqualTo(147));
+        Assert.That(fraction.Denominator, Is.EqualTo(100));
+    }
+
+    [Test, SetCulture("en-GB")]
+    public void Fraction_UsingCultureWithBritishDecimalPointCharacter()
+    {
+        // when converting from a string we use the decimal point separator
+        var britishCultureValue = "1.47";
+        var fraction = new Fraction(britishCultureValue);
+
+        Assert.That(fraction.Numerator, Is.EqualTo(147));
+        Assert.That(fraction.Denominator, Is.EqualTo(100));
+    }
+
+    [Test]
+    public void ToFraction_UsingCultureWithGermanDecimalPointCharacter()
+    {
+        // when converting from a string we use the decimal point separator
+        var germanCultureValue = "1,47";
+        var fraction = Fraction.ToFraction(germanCultureValue, new CultureInfo("de-DE"));
+
+        Assert.That(fraction.Numerator, Is.EqualTo(147));
+        Assert.That(fraction.Denominator, Is.EqualTo(100));
+    }
+
 }

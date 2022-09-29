@@ -7,14 +7,14 @@
 	  <Company>PutridParrot</Company>
 	  <Authors>Mark Timmings</Authors>
 	  <Description>Fraction class/library</Description>
-	  <Version>1.0.0-alpha</Version>
+	  <Version>1.0.1-alpha</Version>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <RepositoryUrl>https://github.com/putridparrot/PutridParrot.Fractions.git</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
 	  <PackageIcon>PutridParrot.Fractions.png</PackageIcon>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
-	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
-	  <FileVersion>1.0.0.0</FileVersion>
+	  <AssemblyVersion>1.0.1.0</AssemblyVersion>
+	  <FileVersion>1.0.1.0</FileVersion>
   </PropertyGroup>
 
 	<ItemGroup>
