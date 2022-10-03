@@ -6,7 +6,7 @@ using PropertyAttribute = FsCheck.NUnit.PropertyAttribute;
 namespace Tests.PutridParrot.Fractions;
 
 [ExcludeFromCodeCoverage]
-public class PropertyTests
+public class RandomGeneratedTests
 {
     [Property]
     public void FromDoubleToFractionAndBack()
